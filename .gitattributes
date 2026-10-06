@@ -1,0 +1,2 @@
+# scripts run on Linux, keep Linux line endings even when committed from Windows
+* text=auto eol=lf
