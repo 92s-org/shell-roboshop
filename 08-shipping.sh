@@ -8,12 +8,16 @@ dnf install maven java-25-openjdk-devel -y &>> $LOGS_FILE
 VALIDATE $? "Installing Java 25 and Maven"
 
 # maven also installs Java 21, make Java 25 the default
-alternatives --set java java-25-openjdk.x86_64
+# the folder name has the exact version, so take it from the alternatives list
+JAVA_25=$(alternatives --display java | grep -o "/usr/lib/jvm/java-25[^ ]*/bin/java" | head -1)
+alternatives --set java $JAVA_25
 VALIDATE $? "Setting Java 25 as default"
 
 # JAVA_HOME tells maven which Java to use, profile.d keeps it after logout
-echo 'export JAVA_HOME=/usr/lib/jvm/java-25-openjdk' > /etc/profile.d/java.sh
+# /usr/lib/jvm/java-25-openjdk-<version>/bin/java -> /usr/lib/jvm/java-25-openjdk-<version>
+echo "export JAVA_HOME=$(dirname $(dirname $JAVA_25))" > /etc/profile.d/java.sh
 source /etc/profile.d/java.sh
+echo "JAVA_HOME=$JAVA_HOME" &>> $LOGS_FILE
 
 CREATE_APP_USER
 DOWNLOAD_APP shipping
