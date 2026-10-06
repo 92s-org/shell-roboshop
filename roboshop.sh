@@ -243,7 +243,7 @@ if [ "$ACTION" == "create" ]; then
             echo -e "Instance roboshop-$component is stopping ... $Y run this script again in a minute $N"
             continue
         else
-            echo -e "Instance roboshop-$component ... $Y EXISTS $N $INSTANCE_ID ($STATE)"
+            echo -e "Instance roboshop-$component already $STATE ... $Y SKIPPING $N $INSTANCE_ID"
         fi
         INSTANCE_IDS="$INSTANCE_IDS $INSTANCE_ID"
     done
