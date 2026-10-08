@@ -109,6 +109,35 @@ Run the script from inside the `shell-roboshop-new` folder: it copies the servic
 
 Every script is safe to run again. It skips what is already done, for example the database password or loading the data a second time.
 
+### Or Set Up All Servers in One Go
+
+`setup.sh` logs in to every server and runs its script, in the order above:
+
+```shell
+./setup.sh all
+```
+
+Or only some of them (they still run in the right order):
+
+```shell
+./setup.sh shipping payment
+```
+
+- Run it on your workstation in the same VPC, where you ran `roboshop.sh`. It reaches the servers through `<component>.<domain>`, which point to private IPs.
+- It logs in as `ec2-user` with the password of the practice AMI, so it needs `sshpass`:
+
+```shell
+sudo dnf install https://dl.fedoraproject.org/pub/epel/epel-release-latest-9.noarch.rpm -y
+sudo dnf install sshpass -y
+```
+
+- Set `REPO_URL` at the top of `setup.sh` to your repo. On every server it clones the repo into `/root`, or pulls the latest changes when it is already there.
+- It waits for SSH, so you can run it right after `./roboshop.sh create all`.
+- It stops at the first failure, because the next servers need that one. It prints the command to continue after you fix the problem.
+- The output of every server is also saved in `logs/<component>.log` on your workstation.
+
+The full setup takes about 15 minutes. Shipping is the slowest, because of the Maven build.
+
 ---
 
 ## Checks
@@ -169,6 +198,7 @@ journalctl -u catalogue -f
 
 | File | Used by |
 |------|---------|
+| `setup.sh` | Your workstation: runs all the component scripts on their servers |
 | `common.sh` | All scripts: root check, `VALIDATE`, logs, and the check functions |
 | `mongo.repo` | `01-mongodb.sh`, `05-catalogue.sh` (MongoDB client) |
 | `rabbitmq.repo` | `04-rabbitmq.sh` |
