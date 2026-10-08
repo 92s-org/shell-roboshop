@@ -12,7 +12,7 @@ Environment=USER_PORT=8080
 Environment=AMQP_HOST=rabbitmq.daws92s.store
 Environment=AMQP_USER=roboshop
 Environment=AMQP_PASS=roboshop123
-ExecStart=/app/.venv/bin/gunicorn --config gunicorn.conf.py payment:app
+ExecStart=/app/.venv/bin/gunicorn --config gunicorn.conf.py --no-control-socket payment:app
 SyslogIdentifier=payment
 Restart=on-failure
 RestartSec=5

@@ -13,10 +13,15 @@ systemctl enable mysqld &>> $LOGS_FILE
 systemctl start mysqld
 VALIDATE $? "Starting MySQL"
 
-# the root password can be set only once, the second time it fails
+# a new MySQL has no root password, so "mysql -uroot" logs in without one
+# root@localhost: login on this server, root@%: login from other servers (shipping loads the data)
 mysql -uroot -pRoboShop@1 -e "SELECT 1" &>> $LOGS_FILE
 if [ $? -ne 0 ]; then
-    mysql_secure_installation --set-root-pass RoboShop@1 &>> $LOGS_FILE
+    mysql -uroot -e "
+        ALTER USER 'root'@'localhost' IDENTIFIED BY 'RoboShop@1';
+        CREATE USER IF NOT EXISTS 'root'@'%' IDENTIFIED BY 'RoboShop@1';
+        GRANT ALL PRIVILEGES ON *.* TO 'root'@'%' WITH GRANT OPTION;
+    " &>> $LOGS_FILE
     VALIDATE $? "Setting root password"
 else
     SKIP "Root password already set"
@@ -26,8 +31,13 @@ echo "---- Checks ----"
 CHECK_SERVICE mysqld
 CHECK_PORT 3306
 if mysql -uroot -pRoboShop@1 -e "SELECT 1" &>/dev/null; then
-    PASS "root login works"
+    PASS "root login with password works"
 else
-    FAIL "root login failed"
+    FAIL "root login with password failed"
+fi
+if mysql -uroot -pRoboShop@1 -N -e "SELECT user FROM mysql.user WHERE user='root' AND host='%'" 2>/dev/null | grep -q root; then
+    PASS "root can log in from other servers"
+else
+    FAIL "root@% is missing, shipping cannot load the data"
 fi
 CHECK_SUMMARY
